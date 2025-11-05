@@ -86,16 +86,31 @@ public class LineCounter {
 
         timer.start();
 
+        Thread[] threads = null;
         if (files != null) {
-            for (File file : files) {
-                countLines(args[0] + "/" + file.getName());
+            threads = new Thread[files.length];
+            for (int i = 0; i < files.length; i++) {
+                final String filename = new File(folder, files[i].getName()).getPath();
+                threads[i] = new Thread(() -> countLines(filename));
+                threads[i].start();
+            }
+
+            for (int i = 0; i < threads.length; i++) {
+                if (threads[i] != null) {
+                    try {
+                        threads[i].join();
+                    } catch (InterruptedException e){
+                        Thread.currentThread().interrupt();
+                        System.out.println(e.getMessage());
+                    }
+                }
             }
         }
 
         timer.stop();
 
         System.out.println("==========================================");
-        System.out.println("Files processed: " + (files==null ? 0 : files.length));
+        System.out.println("Files processed: " + (files == null ? 0 : files.length));
         System.out.println("Time elapsed     : " + timer);
         System.out.println("==========================================");
     }
